@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Card from '../models/card';
+import { REQUEST_SUCCESS } from '../constants';
 
 interface RequestCustom extends Request {
   user?: {
@@ -32,7 +33,7 @@ export const createCard = async (req: RequestCustom, res: Response, next: NextFu
       link,
       owner: req.user?._id,
     });
-    return res.status(200).send(card);
+    return res.status(REQUEST_SUCCESS).send(card);
   } catch (error) {
     return next(error);
   }
