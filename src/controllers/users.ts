@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import User from '../models/user';
+import { REQUEST_SUCCESS } from '../constants';
 
 interface RequestCustom extends Request {
   user?: {
@@ -17,7 +18,7 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await User.findById(req.params.userId);
-    return res.status(200).send({ data: user });
+    return res.status(REQUEST_SUCCESS).send({ data: user });
   } catch (err) {
     return next(err);
   }
@@ -28,7 +29,7 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
     const { name, about, avatar } = req.body;
     const newUser = await User.create({ name, about, avatar });
     await newUser.save();
-    return res.status(200).send({
+    return res.status(REQUEST_SUCCESS).send({
       name: newUser.name,
       about: newUser.about,
       avatar: newUser.avatar,
@@ -47,7 +48,7 @@ export const updateUser = async (req: RequestCustom, res: Response, next: NextFu
       { new: true, runValidators: true },
     );
 
-    return res.status(200).send({ data: updatedUser });
+    return res.status(REQUEST_SUCCESS).send({ data: updatedUser });
   } catch (err) {
     return next(err);
   }
@@ -61,7 +62,7 @@ export const updateAvatar = async (req: RequestCustom, res: Response, next: Next
       { new: true, runValidators: true },
     );
 
-    return res.status(200).send({ data: updatedUser });
+    return res.status(REQUEST_SUCCESS).send({ data: updatedUser });
   } catch (err) {
     return next(err);
   }
