@@ -1,7 +1,4 @@
 import { Router } from 'express';
-// import {
-//   celebrate, Joi,
-// } from 'celebrate';
 import {
   getUserById, getUsers, updateUser, updateAvatar, getCurrentUser,
 } from '../controllers/users';
