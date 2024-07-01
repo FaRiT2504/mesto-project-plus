@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import User from '../models/user';
-import { REQUEST_SUCCESS } from '../constants';
+import { REQUEST_SUCCESS, SECRET_KEY } from '../constants';
+import RequestError from '../errors/request-error';
 
 interface RequestCustom extends Request {
   user?: {
@@ -21,8 +23,8 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
   try {
     const user = await User.findById(req.params.userId);
     return res.status(REQUEST_SUCCESS).send({ data: user });
-  } catch (err) {
-    return next(err);
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -45,6 +47,9 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       password: newUser.password,
     });
   } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(new RequestError('Переданы некорректные данные пользователя'));
+    }
     return next(error);
   }
 };
@@ -59,8 +64,11 @@ export const updateUser = async (req: RequestCustom, res: Response, next: NextFu
     );
 
     return res.status(REQUEST_SUCCESS).send({ data: updatedUser });
-  } catch (err) {
-    return next(err);
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return next(new RequestError('Некорректные данные профиля'));
+    }
+    return next(error);
   }
 };
 export const updateAvatar = async (req: RequestCustom, res: Response, next: NextFunction) => {
@@ -73,8 +81,11 @@ export const updateAvatar = async (req: RequestCustom, res: Response, next: Next
     );
 
     return res.status(REQUEST_SUCCESS).send({ data: updatedUser });
-  } catch (err) {
-    return next(err);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return (new RequestError('Некорректные данные аватара профиля'));
+    }
+    return next(error);
   }
 };
 
@@ -85,10 +96,10 @@ export const login = async (req: RequestCustom, res: Response, next: NextFunctio
       password,
     } = req.body;
     const user = await User.findUserByCredentials(email, password);
-    const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, SECRET_KEY, { expiresIn: '7d' });
     res.header('Authorization', token).send({ token });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
 export const getCurrentUser = async (req: RequestCustom, res: Response, next: NextFunction) => {
